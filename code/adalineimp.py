@@ -24,7 +24,18 @@ full_data = np.r_[alb_data, owl_data]
 
 df = pd.DataFrame(full_data, columns=['weight', 'wingspan', 'target'])
 df = df.sample(frac = 1, random_state = 42, ignore_index = True)
-print(df)
+
+x = np.full(df.iloc[:, 0].shape, 1)
+df.insert(0, 'bias', x)
+X = df.iloc[:, 0:-1]
+y = df.iloc[:, -1]
+rand = np.random.RandomState(42)
+w = rand.normal(scale=.01, size = X.shape[1])
+ns = np.dot(X, w)
+print(y)
+print(np.sum(np.square(y - ns)))
+
+
 
 def initialize_weights(X):
     '''
