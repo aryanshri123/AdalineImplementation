@@ -133,10 +133,14 @@ class Adaline:
         inside_term = (self.y - predicted)
         return -np.dot(inside_term, self.X)
     
-    def train(self, cost_func='sse', learning_rate=1e-3, n_iter=12):
-        for i in range(12000):
+    def train(self, cost_func='sse', learning_rate=.001):
+        prev_w = np.array([100 for i in range(self.n_features)])
+        # checks convergence
+        while not np.allclose(prev_w, self.w, atol=1e-2):
             gradient = self._sse_grad()
+            prev_w = self.w.copy()
             self.w += -learning_rate * gradient
+
         return self.w
         
     
