@@ -3,6 +3,7 @@ import pandas as pd
 import randomdata
 from adaline2 import Adaline
 
+# create dataset
 n_samples = 100
 
 # albatross
@@ -19,36 +20,36 @@ owl_mean_wingspan = 100
 owl_var_wingspan = 15
 owl_target = -1
 
-alb_data = randomdata.species_gen(alb_mean_weight, alb_var_weight, alb_mean_wingspan, alb_var_wingspan, n_samples, alb_target, 42)
-owl_data = randomdata.species_gen(owl_mean_weight, owl_var_weight, owl_mean_wingspan, owl_var_wingspan, n_samples, owl_target, 42)
-full_data = np.r_[alb_data, owl_data]
+alb_data_train = randomdata.species_gen(alb_mean_weight, alb_var_weight, \
+                                  alb_mean_wingspan, alb_var_wingspan, \
+                                  n_samples, alb_target, 42)
+owl_data_train = randomdata.species_gen(owl_mean_weight, owl_var_weight, \
+                                  owl_mean_wingspan, owl_var_wingspan, \
+                                  n_samples, owl_target, 42)                            
 
-df = pd.DataFrame(full_data, columns=['weight', 'wingspan', 'target'])
-df = df.sample(frac = 1, random_state = 42, ignore_index = True)
+df = pd.concat([alb_data_train, owl_data_train], ignore_index=True)
+df = df.sample(frac=1.0, random_state=42)
+df = df.reset_index()
+df = df[df.columns.difference(['index'])]
 
-
-alb_test = randomdata.species_gen(alb_mean_weight, alb_var_weight, alb_mean_wingspan, alb_var_wingspan, n_samples, alb_target, 142)
-owl_test = randomdata.species_gen(owl_mean_weight, owl_var_weight, owl_mean_wingspan, owl_var_wingspan, n_samples, owl_target, 142)
-
-full_test = np.r_[alb_test, owl_test]
-test_df = pd.DataFrame(full_test, columns=['weight', 'wingspan', 'target'])
-test_df = test_df.sample(frac = 1, random_state = 42, ignore_index = True)
-test_df = test_df.drop('target',axis=1)
-test_df['bias'] = np.full((len(test_df),), 1)
-test_df['target'] = df['weight'].apply(lambda x: 1 if x > 5000 else -1)
-cols = list(test_df.columns)
-cols = ['bias', 'weight', 'wingspan', 'target']
-test_df = test_df[cols]
 
 model = Adaline(df)
+print(model.train())
 
-def squared_err(row):
-    z = np.dot(row[:-1], model.w)
-    targ = row['target']
-    return np.square(targ - z)
+alb_data_test = randomdata.species_gen(alb_mean_weight, alb_var_weight, \
+                                  alb_mean_wingspan, alb_var_wingspan, \
+                                  50, alb_target, 10)
+owl_data_test = randomdata.species_gen(owl_mean_weight, owl_var_weight, \
+                                  owl_mean_wingspan, owl_var_wingspan, \
+                                  50, owl_target, 10)    
 
+df_t = pd.concat([alb_data_test, owl_data_test], ignore_index=True)
+df_t = df_t.sample(frac=1.0, random_state=42)
+df_t = df_t.reset_index()
+df_t = df_t[df_t.columns.difference(['index'])]
 
-df['net_input'] = model._net_inputs(df.iloc[:, 0:-1])
-print(df['target'] - df['net_input'])
+test_data = Adaline(df_t).X
+predictions = model.predict(test_data)
+df_t['predictions'] = predictions
 
-
+print(f'accuracy: {len(df_t[df_t[2] == df_t['predictions']])/len(df_t)}')

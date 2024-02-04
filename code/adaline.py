@@ -39,13 +39,19 @@ class Adaline:
         bias_x = np.full(X.iloc[:, 0].shape, 1)
         data.insert(0, 'bias', bias_x)
 
+        # self.data is pd dataframe
+        # self.X has shape (n, m + 1)
+        # self.y has shape (n, 1)
         self.data = data
         self.X = data.iloc[:, 0:-1]
         self.y = data.iloc[:, -1]
+        self.n = len(self.data)
+        self.n_features = len(self.X.columns) # counts bias
 
         # need to randomly initialize initial weights.
+        # self.w has shape (m, 1)
         rand = np.random.RandomState(42)
-        self.w = rand.normal(scale=.01, size = self.X.shape[1])
+        self.w = rand.normal(scale=.01, size = (self.n_features, ))
     
     def __repr__(self):
         return str(self.w)
@@ -59,19 +65,19 @@ class Adaline:
         
         Output:
             vector of net_inputs.
-                - takes shape (n, )
+                - takes shape (n, 1)
 
         net_input defined as linear combination of weight and feature
         values. 
         '''
         if to_test is None:
-            return np.dot(self.X, self.w)
+            return self.X @ self.w
         else:
-            return np.dot(to_test, self.w)
+            return to_test @ self.w
 
-    def _threshold(self, to_test=None):
+    def _activation(self, to_test=None):
         '''
-        Threshold function for binary classification.
+        Activation function for binary classification.
         Will be defined as such:
         1 if net_input > 0
         -1 if net_input <= 0
@@ -106,26 +112,10 @@ class Adaline:
         Output:
             s (int): sum of squared errors
         '''
-        net_inputs = self._net_inputs()
-        diff_squared = np.square(self.y - net_inputs)
-        return np.sum(diff_squared)
-    
-    def _mse(self):
-        '''
-        Is an example of a loss function. In this case, it will
-        be the mean of squared errors. This is identical to sse,
-        but we divide sum by number of samples. 
-
-        Again, we are mainly interested in the weights
-
-        Input:
-            self
+        predicted = self._activation()
+        summation = np.sum(np.square(self.y - predicted))
+        return summation/2
         
-        Output:
-            m (float): mean of squared errors
-        '''
-        m = self._sse()
-        return m/(self.X.shape[0])
 
     def _sse_grad(self):
         '''
@@ -139,53 +129,19 @@ class Adaline:
             nabla_sse (numpy array):
                 vector of slope of each w_j, (represents gradient of sse)
         '''
-        # partial derivative of sse with respect to each w_j:
-        # - (sum of (2 * (y - net_input) * x_j)
-        # y is a vector of n elements
-        # net_input is a vector of n elements
-        # x_j is a vector of n elements
-        net_inputs = self._net_inputs()
-        diff = self.y - net_inputs
-        multiplied_diff = 2 * diff
-        
-        nabla_sse = np.array([])
-        for i in range(len(self.w)):
-            curr_feature = self.X.iloc[:, i]
-            result = -np.dot(multiplied_diff, curr_feature)
-            nabla_sse = np.append(nabla_sse, result)
-
-        return nabla_sse
-
-    def _mse_grad(self):
-        '''
-        Get gradient of mse loss function with respect to each weight
-        This will return a vector of m elements.
-
-        Input:
-            self
-        
-        Output:
-            nabla_mse (numpy array):
-                vector of slope of each w_j (represents gradient for mse)
-        '''
-        nabla_sse = self._sse_grad()
-        return nabla_sse/(self.X.shape[0])
+        predicted = self._activation()
+        inside_term = (self.y - predicted)
+        return -np.dot(inside_term, self.X)
     
-    def train(self, cost_func='mse', learning_rate=1e-3, n_iter=5000):
-        # if cost_func == 'mse':
-        #     gradient = self._mse_grad
-        # else:
-        #     gradient = self._sse_grad
-        for i in range(n_iter):
-            nabla = self._mse_grad()
-            print(nabla)
-            #print(i, learning_rate * nabla, self.w)
-            self.w += (-learning_rate * nabla)
+    def train(self, cost_func='sse', learning_rate=1e-3, n_iter=12):
+        for i in range(12000):
+            gradient = self._sse_grad()
+            self.w += -learning_rate * gradient
+        return self.w
         
-        # return self.w
     
     def predict(self, points):
         '''
         point should be an array of m features in correct order
         '''
-        return self._threshold(points)
+        return self._activation(points)
