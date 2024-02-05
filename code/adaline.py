@@ -1,11 +1,4 @@
-'''
-NOTATION:
-m = number of features
-n = number of samples for training
-'''
-
 import numpy as np
-import randomdata
 
 class Adaline:
     '''
