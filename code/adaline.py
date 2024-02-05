@@ -1,12 +1,4 @@
 '''
-QUESTIONS:
-
-Does initializing weight proportional to features make training faster?
-e.g. weight feature so much larger than wingspan, should I initialize
-weight's weight to be smaller compared to bias and wingspan?
-'''
-
-'''
 NOTATION:
 m = number of features
 n = number of samples for training
@@ -71,11 +63,11 @@ class Adaline:
         values. 
         '''
         if to_test is None:
-            return self.X @ self.w
+            return np.dot(self.X, self.w)
         else:
-            return to_test @ self.w
-
-    def _activation(self, to_test=None):
+            return np.dot(to_test, self.w)
+    
+    def _threshold(self, to_test=None):
         '''
         Activation function for binary classification.
         Will be defined as such:
@@ -98,11 +90,19 @@ class Adaline:
             vec = np.vectorize(lambda x: 1 if x > 0 else -1)
             return vec(net_inputs)
     
+    # tanh
+    def _activation1(self):
+        return np.tanh(self._net_inputs())
+    
+    # step function
+    def _activation2(self):
+        return self._threshold()
+    
     def _sse(self):
         '''
         Is an example of a loss function. In this case, it will
         be the sum of squared errors, defined as:
-        sum of (target - predicted)^2 for each sample.
+        1/2 sum of (target - predicted)^2 for each sample.
 
         This is mainly a function of the weights. 
 
@@ -112,7 +112,7 @@ class Adaline:
         Output:
             s (int): sum of squared errors
         '''
-        predicted = self._activation()
+        predicted = self._activation1()
         summation = np.sum(np.square(self.y - predicted))
         return summation/2
         
@@ -129,23 +129,22 @@ class Adaline:
             nabla_sse (numpy array):
                 vector of slope of each w_j, (represents gradient of sse)
         '''
-        predicted = self._activation()
+        predicted = self._activation1()
         inside_term = (self.y - predicted)
         return -np.dot(inside_term, self.X)
     
-    def train(self, cost_func='sse', learning_rate=.001):
+    def train(self, cost_func='sse', learning_rate=1e-3):
+        # ensure no immediate convergence
         prev_w = np.array([100 for i in range(self.n_features)])
-        # checks convergence
         while not np.allclose(prev_w, self.w, atol=1e-2):
             gradient = self._sse_grad()
             prev_w = self.w.copy()
             self.w += -learning_rate * gradient
 
         return self.w
-        
-    
+
     def predict(self, points):
         '''
         point should be an array of m features in correct order
         '''
-        return self._activation(points)
+        return self._threshold(points)
