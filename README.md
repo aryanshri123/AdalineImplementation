@@ -1,6 +1,6 @@
 # Overview
 
-This repository contains 3 python files: `adaline.py`, `adalineimplementation.py`, `randomdata.py`. `adaline.py` contains the actual adaline model. `randomdata.py` is a random data generator that is used in `adalineimplementation.py` to provide a specific example of how one can implement the ADALINE model found in `adaline.py`. 
+This repository contains 3 python files in the code folder: `adaline.py`, `adalineimplementation.py`, `randomdata.py`. `adaline.py` contains the actual adaline model. `randomdata.py` is a random data generator that is used in `adalineimplementation.py` to provide a specific example of how one can implement the ADALINE model found in `adaline.py`. 
 
 # Notes
 
