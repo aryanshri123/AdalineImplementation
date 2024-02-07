@@ -12,10 +12,12 @@ class Adaline:
     def __init__(self, data):
         '''
         Attributes:
-            self.X: numericized matrix representing features
-            self.y: series representing target
-            self.w: vector of m+1 features, initialized randomly
-                - n+1 because we want to include bias term
+            self.data (DataFrame): original data provided with bias term included
+            self.X (DataFrame): numericized matrix representing features
+            self.y (Series): series representing target
+            self.w (numpy vector): vector of features, initialized randomly
+            self.n (int): number of samples
+            self.n_features (int): number of features, including bias term artifically added
         '''
         # Need a feature that represents bias term
         # this will just be all 1 for everything in df
@@ -26,6 +28,7 @@ class Adaline:
 
         # self.data is pd dataframe
         # self.X has shape (n, m + 1)
+        #     n is n
         # self.y has shape (n, 1)
         self.data = data
         self.X = data.iloc[:, 0:-1]
@@ -47,6 +50,8 @@ class Adaline:
 
         Input:
             self
+            to_test (DataFrame): dataframe of similar structure to inputted dataframe,
+                                 without targets
         
         Output:
             vector of net_inputs.
@@ -69,6 +74,8 @@ class Adaline:
 
         Input:
             self
+            to_test (DataFrame): dataframe of similar structure to inputted dataframe,
+                                 without targets
         
         Output:
             vector filled w/ either 1 or -1
@@ -103,7 +110,8 @@ class Adaline:
             self
         
         Output:
-            s (int): sum of squared errors
+            (int): sum of squared errors / 2
+                   Taking over 2 to simplify gradient calculation
         '''
         predicted = self._activation1()
         summation = np.sum(np.square(self.y - predicted))
@@ -119,25 +127,44 @@ class Adaline:
             self
         
         Output: 
-            nabla_sse (numpy array):
-                vector of slope of each w_j, (represents gradient of sse)
+            (numpy array): vector of slope of each w_j, (represents gradient of sse)
         '''
         predicted = self._activation1()
         inside_term = (self.y - predicted)
         return -np.dot(inside_term, self.X)
     
-    def train(self, cost_func='sse', learning_rate=1e-3):
+    def train(self, learning_rate=1e-3, max_iter=5000):
+        '''
+        Train the model by updating weights by gradient descent.
+
+        Inputs:
+            self
+            learning_rate (float): initialize to small number, ensures we don't
+                                   overshoot
+            max_iter (int): Maximum iterations before we "give" up on finding
+                            weights to converge to. 
+
+        Output:
+            self.w (numpy array): vector of weights to use.
+        '''
         # ensure no immediate convergence
         prev_w = np.array([100 for i in range(self.n_features)])
-        while not np.allclose(prev_w, self.w, atol=1e-2):
+        i = 0
+        while not np.allclose(prev_w, self.w, atol=1e-2) and i < max_iter:
             gradient = self._sse_grad()
             prev_w = self.w.copy()
             self.w += -learning_rate * gradient
+            i += 1
 
         return self.w
 
-    def predict(self, points):
+    def predict(self, to_test):
         '''
         point should be an array of m features in correct order
+
+        Input:
+            self
+            to_test (DataFrame): samples to predict on in similar format to inputted DataFrame
+                                 Should not include bias or target columns.
         '''
         return self._threshold(points)
