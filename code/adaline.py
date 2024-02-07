@@ -98,7 +98,7 @@ class Adaline:
     def _activation2(self):
         return self._threshold()
     
-    def _sse(self):
+    def _sse(self, activation='tanh'):
         '''
         Is an example of a loss function. In this case, it will
         be the sum of squared errors, defined as:
@@ -108,32 +108,40 @@ class Adaline:
 
         Input:
             self
+            activation (str): either tanh or step
         
         Output:
             (int): sum of squared errors / 2
                    Taking over 2 to simplify gradient calculation
         '''
-        predicted = self._activation1()
+        if activation == 'tanh':
+            predicted = self._activation1()
+        elif activation == 'step':
+            predicted = self._activation2()
         summation = np.sum(np.square(self.y - predicted))
         return summation/2
         
 
-    def _sse_grad(self):
+    def _sse_grad(self, activation='tanh'):
         '''
         Get the gradient of the sse loss function with respect to 
         each weight. This will return a vector of m elements. 
 
         Input:
             self
+            activation (str): either tanh or step activation
         
         Output: 
             (numpy array): vector of slope of each w_j, (represents gradient of sse)
         '''
-        predicted = self._activation1()
+        if activation == 'tanh':
+            predicted = self._activation1()
+        elif activation == 'step':
+            predicted = self._activation2()
         inside_term = (self.y - predicted)
         return -np.dot(inside_term, self.X)
     
-    def train(self, learning_rate=1e-3, max_iter=5000):
+    def train(self, learning_rate=1e-3, max_iter=5000, activation='tanh'):
         '''
         Train the model by updating weights by gradient descent.
 
@@ -151,7 +159,7 @@ class Adaline:
         prev_w = np.array([100 for i in range(self.n_features)])
         i = 0
         while not np.allclose(prev_w, self.w, atol=1e-2) and i < max_iter:
-            gradient = self._sse_grad()
+            gradient = self._sse_grad(activation)
             prev_w = self.w.copy()
             self.w += -learning_rate * gradient
             i += 1
@@ -167,4 +175,8 @@ class Adaline:
             to_test (DataFrame): samples to predict on in similar format to inputted DataFrame
                                  Should not include bias or target columns.
         '''
-        return self._threshold(points)
+        # Introduce bias term
+        bias_x = np.full(to_test.iloc[:, 0].shape, 1)
+        to_test.insert(0, 'bias', bias_x)
+
+        return self._threshold(to_test)

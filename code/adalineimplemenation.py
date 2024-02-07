@@ -34,7 +34,11 @@ df = df[df.columns.difference(['index'])]
 
 
 model = Adaline(df)
-print(model.train())
+weights = model.train(activation='tanh')
+print(f'Model Weights: \n \
+        bias: {weights[0]} \n \
+        weight: {weights[1]} \n \
+        wingspan: {weights[2]}')
 
 alb_data_test = randomdata.species_gen(alb_mean_weight, alb_var_weight, \
                                   alb_mean_wingspan, alb_var_wingspan, \
@@ -48,8 +52,11 @@ df_t = df_t.sample(frac=1.0, random_state=42)
 df_t = df_t.reset_index()
 df_t = df_t[df_t.columns.difference(['index'])]
 
-test_data = Adaline(df_t).X
-predictions = model.predict(test_data)
-df_t['predictions'] = predictions
+df_to_test = df_t.iloc[:, :-1]
 
-print(f'accuracy: {len(df_t[df_t[2] == df_t['predictions']])/len(df_t)}')
+
+predictions = pd.Series(model.predict(df_to_test))
+df_to_test.insert(len(df_to_test.columns), 'predictions', predictions)
+
+accuracy_series = (df_t.loc[:, 2] == df_to_test['predictions'])
+print(f'Test Accuracy: {accuracy_series.value_counts().iloc[0]/len(accuracy_series)*100}%')
