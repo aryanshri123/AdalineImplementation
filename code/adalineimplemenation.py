@@ -3,6 +3,7 @@ import pandas as pd
 import randomdata
 from adaline import Adaline
 
+
 # create dataset
 n_samples = 100
 
