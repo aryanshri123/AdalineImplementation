@@ -12,6 +12,10 @@ I also included a step activation function as I found that that also worked when
 
 <img width="608" alt="step" src="https://github.com/aryanshri123/AdalineImplementation/assets/153876046/48766f0a-0923-4610-9ce1-e323d374f04f">
 
+Here as an example call to adalineimplementation showing what the weights converged to as well as the accuracy of the model:
+
+<img width="547" alt="Screenshot 2024-02-07 at 11 21 58 AM" src="https://github.com/aryanshri123/AdalineImplementation/assets/153876046/cc14d16f-f5dd-4e72-b0c7-2da49a627abf">
+
 # Next Steps
 
 Test on real data with many more features.
