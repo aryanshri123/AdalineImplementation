@@ -172,8 +172,8 @@ class Adaline:
 
         Input:
             self
-            to_test (DataFrame): samples to predict on in similar format to inputted DataFrame
-                                 Should not include bias or target columns.
+            to_test (DataFrame): samples to predict on in similar format to inputted DataFrame,
+                                 just without target column.
         '''
         # Introduce bias term
         bias_x = np.full(to_test.iloc[:, 0].shape, 1)
